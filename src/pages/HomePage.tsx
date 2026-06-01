@@ -89,7 +89,16 @@ export default function HomePage() {
             animate={{ opacity: 1 }}
             transition={{ delay: 0.6 }}
           >
-            Petualangan Matematika untuk SD
+            Virtual Manipulative Math Berbasis RME
+          </motion.p>
+          <motion.p
+            className="text-sm font-bold text-yellow-200 mt-1"
+            style={{ textShadow: '0 1px 3px rgba(0,0,0,0.3)' }}
+            initial={{ opacity: 0, y: 5 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.7 }}
+          >
+            Belajar Bangun Datar Jadi Lebih Menyenangkan! ✨
           </motion.p>
 
           <motion.div
