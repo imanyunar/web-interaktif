@@ -18,7 +18,6 @@ const objects = [
   { name: 'Rumah', img: '/assets/obj/obj_rumah_geometri.png', parts: 'Segitiga + Persegi + Persegi Panjang' },
   { name: 'Perahu', img: '/assets/obj/obj_perahu_geometri.png', parts: 'Trapesium + Persegi Panjang + Segitiga' },
   { name: 'Robot', img: '/assets/obj/obj_robot_geometri.png', parts: 'Persegi + Persegi Panjang' },
-  { name: 'Kucing', img: '/assets/obj/obj_kucing_geometri.png', parts: 'Lingkaran + Segitiga' },
 ];
 
 const slidesData: Slide[] = [
@@ -50,15 +49,15 @@ const slidesData: Slide[] = [
     id: 'objects',
     content: (
       <div className="flex flex-col h-full">
-        <motion.h2 className="text-center mb-3" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>🎨 Benda dari Bangun Datar</motion.h2>
-        <motion.p className="text-center font-semibold mb-5" style={{ color: 'var(--color-text-muted)' }} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.1 }}>
+        <motion.h2 className="text-center mb-2" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>🎨 Benda dari Bangun Datar</motion.h2>
+        <motion.p className="text-center font-semibold mb-5 text-sm" style={{ color: 'var(--color-text-muted)' }} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.1 }}>
           Lihat! Benda-benda ini tersusun dari beberapa bangun datar!
         </motion.p>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 flex-1">
+        <div className="flex-1 flex items-center justify-center gap-3 md:gap-4">
           {objects.map((obj, i) => (
             <motion.div
               key={obj.name}
-              className="card !p-3 md:!p-4 flex flex-col items-center text-center"
+              className="card !p-3 md:!p-4 flex flex-col items-center text-center flex-1 max-w-[200px]"
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 * i, type: 'spring' }}
@@ -66,9 +65,13 @@ const slidesData: Slide[] = [
             >
               <img src={obj.img} className="w-20 h-20 md:w-28 md:h-28 object-contain drop-shadow-md" alt={obj.name} draggable={false} />
               <p className="font-bold text-sm mt-2">{obj.name}</p>
-              <p className="text-[11px]" style={{ color: 'var(--color-text-muted)' }}>{obj.parts}</p>
+              <p className="text-[10px] md:text-[11px] leading-tight" style={{ color: 'var(--color-text-muted)' }}>{obj.parts}</p>
             </motion.div>
           ))}
+        </div>
+        <div className="relative mt-3 flex items-center justify-center gap-6">
+          <img src="/assets/char/char_anak_perempuan.png" className="h-16 md:h-20 object-contain drop-shadow-md" alt="" draggable={false} />
+          <img src="/assets/char/char_anak_laki_laki.png" className="h-16 md:h-20 object-contain drop-shadow-md" alt="" draggable={false} />
         </div>
       </div>
     ),
