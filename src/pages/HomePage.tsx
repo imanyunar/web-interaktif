@@ -71,17 +71,6 @@ export default function HomePage() {
           animate={{ scale: 1, opacity: 1, y: 0 }}
           transition={{ type: 'spring', stiffness: 120, delay: 0.3 }}
         >
-          <motion.h1
-            className="text-gradient"
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5 }}
-          >
-            Belajar
-            <br />
-            Bangun Datar
-          </motion.h1>
-
           <motion.p
             className="text-base md:text-lg font-bold text-white/90 mt-2"
             style={{ textShadow: '0 2px 4px rgba(0,0,0,0.2)' }}
