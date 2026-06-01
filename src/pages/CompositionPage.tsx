@@ -15,7 +15,6 @@ interface ObjDef {
   id: string;
   name: string;
   parts: PartDef[];
-  objImg: string;
   color: string;
 }
 
@@ -24,7 +23,6 @@ const objects: ObjDef[] = [
     id: 'rumah',
     name: 'Rumah',
     color: '#E03030',
-    objImg: '/new_assets/objects/pertemuan-2/obj_rumah_geometri.png',
     parts: [
       { src: '/new_assets/parts/part_rumah_atap_segitiga.png', label: 'Atap (Segitiga)', x: 25, y: 2, w: 50, h: 40 },
       { src: '/new_assets/parts/part_rumah_dinding_persegi.png', label: 'Dinding (Persegi)', x: 20, y: 38, w: 60, h: 55 },
@@ -35,7 +33,6 @@ const objects: ObjDef[] = [
     id: 'perahu',
     name: 'Perahu',
     color: '#2196F3',
-    objImg: '/new_assets/objects/pertemuan-2/obj_perahu_geometri.png',
     parts: [
       { src: '/new_assets/parts/part_perahu_badan_trapesium.png', label: 'Badan (Trapesium)', x: 10, y: 55, w: 80, h: 35 },
       { src: '/new_assets/shapes/shape_persegi_panjang.png', label: 'Tiang (Persegi Panjang)', x: 48, y: 10, w: 5, h: 50 },
@@ -46,7 +43,6 @@ const objects: ObjDef[] = [
     id: 'robot',
     name: 'Robot',
     color: '#9C27B0',
-    objImg: '/new_assets/objects/pertemuan-2/obj_robot_geometri.png',
     parts: [
       { src: '/new_assets/parts/part_robot_kepala_persegi.png', label: 'Kepala (Persegi)', x: 35, y: 2, w: 30, h: 28 },
       { src: '/new_assets/parts/part_robot_badan_persegi_panjang.png', label: 'Badan (Persegi Panjang)', x: 30, y: 30, w: 40, h: 35 },
@@ -58,7 +54,6 @@ const objects: ObjDef[] = [
     id: 'kucing',
     name: 'Kucing',
     color: '#FF9800',
-    objImg: '/new_assets/objects/pertemuan-2/obj_kucing_geometri.png',
     parts: [
       { src: '/new_assets/parts/part_kucing_kepala_lingkaran.png', label: 'Kepala (Lingkaran)', x: 32, y: 2, w: 36, h: 36 },
       { src: '/new_assets/parts/part_kucing_telinga_segitiga.png', label: 'Telinga Kiri (Segitiga)', x: 22, y: 0, w: 22, h: 22 },
@@ -168,78 +163,62 @@ export default function CompositionPage() {
                       draggable={false}
                     />
 
-                    {mode === 'assemble' && showParts && (
-                      activeObj.parts.map((part, i) => (
+                    {activeObj.parts.map((part, i) => {
+                      const isAssemble = mode === 'assemble';
+                      const pos = partPositions[part.label + i];
+                      const baseX = pos?.x ?? part.x;
+                      const baseY = pos?.y ?? part.y;
+
+                      return (
                         <motion.img
                           key={part.label + i}
                           src={part.src}
-                          className="absolute drop-shadow-lg cursor-grab"
+                          className={`absolute drop-shadow-lg ${isAssemble ? 'cursor-grab' : 'cursor-pointer'}`}
                           style={{
-                            left: `${partPositions[part.label + i]?.x ?? part.x}%`,
-                            top: `${partPositions[part.label + i]?.y ?? part.y}%`,
+                            left: `${isAssemble ? baseX : part.x}%`,
+                            top: `${isAssemble ? baseY : part.y}%`,
                             width: `${part.w}%`,
                             height: `${part.h}%`,
                           }}
                           initial={{ scale: 0, rotate: -180, opacity: 0 }}
-                          animate={{ scale: 1, rotate: 0, opacity: 1 }}
-                          transition={{ delay: i * 0.15, type: 'spring', stiffness: 80 }}
-                          whileHover={{ scale: 1.12, zIndex: 50 }}
-                          drag
-                          dragMomentum
-                          onDragEnd={(_e, info) => {
-                            playSuccess();
-                            setPartPositions((prev) => ({
-                              ...prev,
-                              [part.label + i]: {
-                      x: (partPositions[part.label + i]?.x ?? part.x) + (info.offset.x / 12),
-                      y: (partPositions[part.label + i]?.y ?? part.y) + (info.offset.y / 12),
-                              },
-                            }));
-                          }}
+                          animate={
+                            isAssemble
+                              ? { scale: 1, rotate: 0, opacity: 1 }
+                              : {
+                                  scale: 1,
+                                  opacity: 1,
+                                  x: [0, (i % 2 === 0 ? -80 : 80) + (i * 7) % 20],
+                                  y: [0, 60 + i * 30],
+                                  rotate: [0, (i % 2 === 0 ? -15 : 15)],
+                                }
+                          }
+                          transition={
+                            isAssemble
+                              ? { delay: i * 0.15, type: 'spring', stiffness: 80 }
+                              : { delay: i * 0.15 + 0.3, type: 'spring', stiffness: 40, damping: 8 }
+                          }
+                          whileHover={isAssemble ? { scale: 1.12, zIndex: 50 } : { scale: 1.15, zIndex: 50 }}
+                          {...(isAssemble ? {
+                            drag: true,
+                            dragMomentum: true,
+                            onDragEnd: (_e: any, info: any) => {
+                              playSuccess();
+                              setPartPositions((prev) => ({
+                                ...prev,
+                                [part.label + i]: {
+                                  x: (prev[part.label + i]?.x ?? part.x) + (info.offset.x / 12),
+                                  y: (prev[part.label + i]?.y ?? part.y) + (info.offset.y / 12),
+                                },
+                              }));
+                            },
+                          } : {
+                            onClick: () => playClick(),
+                          })}
                           alt={part.label}
                           title={part.label}
                         />
-                      ))
-                    )}
-
-                    {mode === 'disassemble' && (
-                      <motion.img
-                        src={activeObj.objImg}
-                        className="absolute inset-0 w-full h-full object-contain drop-shadow-xl"
-                        alt=""
-                        draggable={false}
-                        initial={{ scale: 1 }}
-                        animate={{ scale: 0.9 }}
-                        transition={{ duration: 0.5 }}
-                      />
-                    )}
-
-                    {mode === 'disassemble' && activeObj.parts.map((part, i) => (
-                      <motion.img
-                        key={part.label + i}
-                        src={part.src}
-                        className="absolute drop-shadow-lg cursor-pointer"
-                        style={{ left: `${part.x}%`, top: `${part.y}%`, width: `${part.w}%`, height: `${part.h}%` }}
-                        initial={{ scale: 0, opacity: 0 }}
-                        animate={{
-                          scale: 1,
-                          opacity: 1,
-                          x: [0, (i % 2 === 0 ? -80 : 80) + (i * 7) % 20],
-                          y: [0, 60 + i * 30],
-                          rotate: [0, (i % 2 === 0 ? -15 : 15)],
-                        }}
-                        transition={{
-                          delay: i * 0.15 + 0.3,
-                          type: 'spring',
-                          stiffness: 40,
-                          damping: 8,
-                        }}
-                        whileHover={{ scale: 1.15, zIndex: 50 }}
-                        onClick={() => playClick()}
-                        alt={part.label}
-                        title={part.label}
-                      />
-                    ))}
+                      );
+                    })}
                   </div>
 
                   {showParts && mode === 'assemble' && (
