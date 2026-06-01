@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Asset Browser - Bangun Datar</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Segoe UI', sans-serif; background: #1a1a2e; color: #fff; padding: 20px; }
+h1 { text-align: center; margin-bottom: 10px; font-size: 2em; }
+.subtitle { text-align: center; color: #888; margin-bottom: 30px; }
+.controls { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-bottom: 30px; }
+.controls button, .controls input {
+  padding: 10px 20px; border: none; border-radius: 8px; font-size: 14px; cursor: pointer;
+  background: #16213e; color: #fff; border: 1px solid #0f3460;
+}
+.controls button:hover { background: #0f3460; }
+.controls button.active { background: #e94560; }
+.frame-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 15px;
+}
+.frame-card {
+  background: #16213e;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 2px solid #0f3460;
+  transition: all 0.3s;
+}
+.frame-card:hover { border-color: #e94560; transform: scale(1.02); }
+.frame-card img { width: 100%; height: 180px; object-fit: cover; display: block; }
+.frame-info { padding: 10px; }
+.frame-info .name { font-weight: bold; font-size: 14px; }
+.frame-info .time { color: #888; font-size: 12px; }
+.frame-info .size { color: #555; font-size: 11px; }
+.key-frames { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 5px; }
+.key-frame-tag {
+  display: inline-block; padding: 2px 8px; border-radius: 4px;
+  font-size: 10px; font-weight: bold; cursor: pointer;
+}
+.key-frame-tag.scene1 { background: #4CAF50; color: #fff; }
+.key-frame-tag.scene2 { background: #2196F3; color: #fff; }
+.key-frame-tag.scene3 { background: #FF9800; color: #fff; }
+.key-frame-tag.scene4 { background: #9C27B0; color: #fff; }
+.key-frame-tag.scene5 { background: #E03030; color: #fff; }
+.selected-frame {
+  margin-bottom: 30px;
+  background: #16213e;
+  border-radius: 12px;
+  padding: 20px;
+  display: none;
+}
+.selected-frame.show { display: block; }
+.selected-frame img { max-width: 100%; max-height: 70vh; display: block; margin: 0 auto; }
+.selected-frame .actions { display: flex; gap: 10px; justify-content: center; margin-top: 15px; }
+.selected-frame .actions a {
+  padding: 10px 24px; border-radius: 8px; text-decoration: none;
+  font-weight: bold; font-size: 14px; background: #e94560; color: #fff;
+}
+#fullscreen-view {
+  display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.95);
+  z-index: 1000; cursor: pointer; padding: 40px;
+}
+#fullscreen-view img { max-width: 100%; max-height: 100%; margin: auto; display: block; object-fit: contain; }
+#fullscreen-view.show { display: flex; align-items: center; justify-content: center; }
+.frame-counter { text-align: center; margin-bottom: 15px; color: #888; font-size: 13px; }
+.nav-arrows { position: fixed; top: 50%; transform: translateY(-50%); width: 100%; left: 0; display: flex; justify-content: space-between; padding: 0 20px; pointer-events: none; z-index: 1001; }
+.nav-arrows button { pointer-events: auto; background: rgba(233,69,96,0.8); border: none; color: #fff; font-size: 30px; padding: 10px 15px; border-radius: 50%; cursor: pointer; width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; }
+.extracted-badge { background: #e94560; color: #fff; font-size: 10px; padding: 1px 6px; border-radius: 3px; margin-left: 5px; }
+.extracted-panel { margin-top: 30px; background: #16213e; border-radius: 12px; padding: 20px; }
+.extracted-panel h2 { margin-bottom: 15px; font-size: 1.3em; }
+.extracted-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; }
+.extracted-item { background: #1a1a2e; border-radius: 8px; padding: 10px; text-align: center; border: 1px solid #0f3460; }
+.extracted-item img { max-width: 100%; max-height: 150px; object-fit: contain; }
+.extracted-item .name { font-size: 12px; color: #aaa; margin-top: 5px; }
+.extracted-item .dl-btn { display: inline-block; margin-top: 5px; padding: 3px 12px; background: #e94560; color: #fff; text-decoration: none; border-radius: 4px; font-size: 11px; }
+</style>
+</head>
+<body>
+<h1>🎬 Asset Browser - Belajar Bangun Datar</h1>
+<p class="subtitle">Semua frame yang diekstrak dari video referensi. Klik untuk melihat detail.</p>
+
+<div class="controls">
+  <button class="active" onclick="filterScene('all')">Semua (310)</button>
+  <button onclick="filterScene('scene1')">Scene 1: Taman</button>
+  <button onclick="filterScene('scene2')">Scene 2: Judul</button>
+  <button onclick="filterScene('scene5')">Scene 5: Segitiga</button>
+  <button onclick="filterScene('scene6')">Scene 6: Segi Empat</button>
+  <button onclick="filterScene('scene8')">Scene 8: Inti</button>
+  <button onclick="filterScene('scene10')">Scene 10: Penutup</button>
+  <input type="range" id="frameJump" min="1" max="310" value="1" oninput="jumpToFrame(this.value)" style="width:200px">
+  <span id="frameJumpLabel">Frame #1</span>
+</div>
+
+<div id="fullscreen-view" onclick="closeFullscreen()">
+  <div class="nav-arrows">
+    <button onclick="event.stopPropagation(); navFrame(-1)">‹</button>
+    <button onclick="event.stopPropagation(); navFrame(1)">›</button>
+  </div>
+  <img id="fullscreen-img" src="" alt="Full frame">
+  <div style="position:fixed;bottom:30px;left:50%;transform:translateX(-50%);color:#fff;font-size:14px;background:rgba(0,0,0,0.7);padding:8px 20px;border-radius:8px" id="fullscreen-label"></div>
+</div>
+
+<div id="selected-frame" class="selected-frame">
+  <img id="selected-img" src="" alt="Selected frame">
+  <div class="frame-counter" id="selected-info"></div>
+  <div class="actions">
+    <a id="dl-link" href="#" download>Download PNG</a>
+    <a href="#" onclick="viewFullscreen()" style="background:#0f3460">Fullscreen</a>
+  </div>
+</div>
+
+<div id="frame-grid" class="frame-grid"></div>
+
+<div class="extracted-panel">
+  <h2>🎯 Aset Hasil Ekstraksi</h2>
+  <p style="color:#888;font-size:13px;margin-bottom:15px">Background terhapus (chroma key) dan crop dari frame tertentu</p>
+  <div class="extracted-grid" id="extracted-grid"></div>
+</div>
+
+<script>
+const TOTAL_FRAMES = 310;
+const SCENE_MAP = {};
+for (let i = 1; i <= 3; i++) SCENE_MAP[i] = 'scene1';
+for (let i = 4; i <= 8; i++) SCENE_MAP[i] = 'scene2';
+for (let i = 9; i <= 13; i++) SCENE_MAP[i] = 'scene3';
+for (let i = 14; i <= 20; i++) SCENE_MAP[i] = 'scene4';
+for (let i = 21; i <= 35; i++) SCENE_MAP[i] = 'scene5';
+for (let i = 36; i <= 53; i++) SCENE_MAP[i] = 'scene6';
+for (let i = 54; i <= 55; i++) SCENE_MAP[i] = 'scene7';
+for (let i = 56; i <= 100; i++) SCENE_MAP[i] = 'scene8';
+for (let i = 101; i <= 103; i++) SCENE_MAP[i] = 'scene9';
+for (let i = 104; i <= 113; i++) SCENE_MAP[i] = 'scene10';
+for (let i = 114; i <= 310; i++) SCENE_MAP[i] = 'scene8';
+
+const KEY_FRAMES = {
+  1: 'Opening taman', 4: 'Judul salam', 11: 'Guru muncul',
+  21: 'Segitiga merah', 36: 'Segi empat', 44: 'Shape kuning',
+  54: 'Lingkaran + guru', 64: 'Shape kuning besar', 94: 'Shape merah besar',
+  101: 'Kembali taman', 111: 'Close-up guru'
+};
+const EXTRACTED = [4, 21, 44, 64, 94];
+
+let currentFilter = 'all';
+let currentFrame = null;
+
+function pad(n) { return String(n).padStart(4,'0'); }
+function getFramePath(n) { return `frames/scene_${pad(n)}.png`; }
+
+function getSceneLabel(n) {
+  const s = SCENE_MAP[n] || 'scene8';
+  const names = {scene1:'Taman', scene2:'Judul', scene3:'Pengantar', scene4:'Guru',
+    scene5:'Segitiga', scene6:'Segi Empat', scene7:'Lingkaran', scene8:'Inti', scene9:'Taman', scene10:'Penutup'};
+  return names[s] || 'Scene 8';
+}
+
+function buildGrid() {
+  const grid = document.getElementById('frame-grid');
+  grid.innerHTML = '';
+  let count = 0;
+  for (let i = 1; i <= TOTAL_FRAMES; i++) {
+    const scene = SCENE_MAP[i] || 'scene8';
+    if (currentFilter !== 'all' && scene !== currentFilter) continue;
+    count++;
+    const card = document.createElement('div');
+    card.className = 'frame-card';
+    card.onclick = () => selectFrame(i);
+    const isExtracted = EXTRACTED.includes(i);
+    card.innerHTML = `
+      <img src="${getFramePath(i)}" alt="Frame ${i}" loading="lazy">
+      <div class="frame-info">
+        <div class="name">#${i} — ${getSceneLabel(i)} ${isExtracted ? '<span class="extracted-badge">EXTRACTED</span>' : ''}</div>
+        <div class="time">⏱ ~${((i-1)*2).toString().padStart(2,'0')}s</div>
+        <div class="size">Scene: ${scene}</div>
+        ${KEY_FRAMES[i] ? `<div class="key-frames"><span class="key-frame-tag ${scene}">⭐ ${KEY_FRAMES[i]}</span></div>` : ''}
+      </div>
+    `;
+    grid.appendChild(card);
+  }
+  document.querySelector('.subtitle').textContent = `Menampilkan ${count} frame dari ${TOTAL_FRAMES}`;
+}
+
+function filterScene(name) {
+  currentFilter = name;
+  document.querySelectorAll('.controls button').forEach(b => b.classList.remove('active'));
+  if (name === 'all') document.querySelector('.controls button').classList.add('active');
+  else event.target.classList.add('active');
+  buildGrid();
+}
+
+function selectFrame(n) {
+  currentFrame = n;
+  const el = document.getElementById('selected-frame');
+  el.classList.add('show');
+  document.getElementById('selected-img').src = getFramePath(n);
+  document.getElementById('selected-info').textContent = `Frame #${n} — ${getSceneLabel(n)} — ⏱ ~${((n-1)*2)}s`;
+  document.getElementById('dl-link').href = getFramePath(n);
+  el.scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+function viewFullscreen() {
+  if (!currentFrame) return;
+  const el = document.getElementById('fullscreen-view');
+  el.classList.add('show');
+  document.getElementById('fullscreen-img').src = getFramePath(currentFrame);
+  document.getElementById('fullscreen-label').textContent = `Frame #${currentFrame} — ${getSceneLabel(currentFrame)} — ⏱ ~${((currentFrame-1)*2)}s`;
+}
+
+function closeFullscreen() {
+  document.getElementById('fullscreen-view').classList.remove('show');
+}
+
+function navFrame(dir) {
+  if (!currentFrame) return;
+  let next = currentFrame + dir;
+  if (next < 1) next = 1;
+  if (next > TOTAL_FRAMES) next = TOTAL_FRAMES;
+  currentFrame = next;
+  document.getElementById('fullscreen-img').src = getFramePath(next);
+  document.getElementById('fullscreen-label').textContent = `Frame #${next} — ${getSceneLabel(next)} — ⏱ ~${((next-1)*2)}s`;
+}
+
+function jumpToFrame(n) {
+  document.getElementById('frameJumpLabel').textContent = `Frame #${n}`;
+  selectFrame(parseInt(n));
+}
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') closeFullscreen();
+  if (e.key === 'ArrowLeft') navFrame(-1);
+  if (e.key === 'ArrowRight') navFrame(1);
+});
+
+buildGrid();
+
+const EXTRACTED_ASSETS = [
+  { file: 'scene04_keyed.png', name: 'Frame 4 (Chroma Key)', desc: 'Judul - background cyan dihapus' },
+  { file: 'scene21_triangle.png', name: 'Frame 21 (Chroma Key)', desc: 'Segitiga - background teal dihapus' },
+  { file: 'scene44_keyed.png', name: 'Frame 44 (Chroma Key)', desc: 'Shape - background teal dihapus' },
+  { file: 'scene64_keyed.png', name: 'Frame 64 (Chroma Key)', desc: 'Shape kuning besar' },
+  { file: 'scene94_keyed.png', name: 'Frame 94 (Chroma Key)', desc: 'Shape merah besar' },
+  { file: 'shape_yellow_crop.png', name: 'Shape Kuning (Crop)', desc: 'Persegi/rectangle kuning (crop)' },
+  { file: 'shape_red_crop.png', name: 'Shape Merah (Crop)', desc: 'Shape merah (crop)' },
+  { file: 'shape_triangle_crop.png', name: 'Segitiga (Crop)', desc: 'Segitiga merah (crop)' },
+  { file: 'shape_rectangle_crop.png', name: 'Persegi Panjang (Crop)', desc: 'Persegi panjang (crop)' },
+  { file: 'teacher_crop.png', name: 'Guru (Crop)', desc: 'Karakter guru dari frame 16' },
+];
+
+const grid = document.getElementById('extracted-grid');
+EXTRACTED_ASSETS.forEach(a => {
+  const item = document.createElement('div');
+  item.className = 'extracted-item';
+  item.innerHTML = `
+    <img src="extracted/${a.file}" alt="${a.name}" loading="lazy">
+    <div class="name">${a.name}</div>
+    <div style="font-size:10px;color:#666">${a.desc}</div>
+    <a class="dl-btn" href="extracted/${a.file}" download>Download</a>
+  `;
+  grid.appendChild(item);
+});
+</script>
+</body>
+</html>

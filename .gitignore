@@ -1,0 +1,9 @@
+node_modules/
+dist/
+.DS_Store
+Thumbs.db
+assets/New folder/
+assets/Copy of Salinan dari BERANDA.zip
+Video/
+*.mp4
+*.zip

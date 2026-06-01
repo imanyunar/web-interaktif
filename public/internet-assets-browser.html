@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Internet Assets Browser</title>
+    <style>
+      body {
+        margin: 0;
+        font-family: Arial, sans-serif;
+        background: #f4f7fb;
+        color: #1f2937;
+      }
+
+      header {
+        padding: 24px;
+        background: #ffffff;
+        border-bottom: 1px solid #dbe3ef;
+      }
+
+      h1 {
+        margin: 0 0 8px;
+        font-size: 28px;
+      }
+
+      main {
+        padding: 24px;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+        gap: 16px;
+      }
+
+      .card {
+        background: #ffffff;
+        border: 1px solid #dbe3ef;
+        border-radius: 8px;
+        padding: 14px;
+        min-height: 220px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .preview {
+        height: 120px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background:
+          linear-gradient(45deg, #e5e7eb 25%, transparent 25%),
+          linear-gradient(-45deg, #e5e7eb 25%, transparent 25%),
+          linear-gradient(45deg, transparent 75%, #e5e7eb 75%),
+          linear-gradient(-45deg, transparent 75%, #e5e7eb 75%);
+        background-size: 18px 18px;
+        background-position: 0 0, 0 9px, 9px -9px, -9px 0;
+        border-radius: 6px;
+        overflow: hidden;
+      }
+
+      img {
+        max-width: 100%;
+        max-height: 100%;
+        object-fit: contain;
+      }
+
+      .name {
+        font-weight: 800;
+        font-size: 13px;
+        word-break: break-word;
+      }
+
+      .meta {
+        font-size: 12px;
+        color: #64748b;
+        line-height: 1.4;
+      }
+
+      a {
+        color: #1d4ed8;
+        text-decoration: none;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Internet Assets Browser</h1>
+      <div id="summary">Memuat manifest...</div>
+    </header>
+    <main>
+      <div class="grid" id="grid"></div>
+    </main>
+
+    <script>
+      async function main() {
+        const manifest = await fetch('/internet_assets/asset_manifest.json').then((res) => res.json());
+        document.getElementById('summary').textContent =
+          `${manifest.total} aset, ${manifest.failed} gagal. Sumber: OpenMoji/Iconify dan OpenClipart.`;
+
+        const grid = document.getElementById('grid');
+        for (const asset of manifest.assets) {
+          const card = document.createElement('article');
+          card.className = 'card';
+          card.innerHTML = `
+            <div class="preview"><img src="${asset.relativePath}" alt="${asset.role || asset.name}"></div>
+            <div class="name">${asset.name}</div>
+            <div class="meta">${asset.role || ''}<br>${asset.provider}<br>${asset.license}</div>
+            <a href="${asset.relativePath}" target="_blank">Buka aset</a>
+            ${asset.page ? `<a href="${asset.page}" target="_blank">Halaman sumber</a>` : ''}
+          `;
+          grid.appendChild(card);
+        }
+      }
+
+      main().catch((error) => {
+        document.getElementById('summary').textContent = error.message;
+      });
+    </script>
+  </body>
+</html>

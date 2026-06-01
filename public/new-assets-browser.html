@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>New Assets Browser</title>
+    <style>
+      body {
+        margin: 0;
+        font-family: Arial, sans-serif;
+        color: #1f2937;
+        background: #eef2f7;
+      }
+
+      header {
+        padding: 24px;
+        background: #fff;
+        border-bottom: 1px solid #d5deea;
+      }
+
+      h1 {
+        margin: 0 0 8px;
+        font-size: 28px;
+      }
+
+      main {
+        padding: 24px;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+        gap: 16px;
+      }
+
+      .card {
+        background: #fff;
+        border: 1px solid #d5deea;
+        border-radius: 8px;
+        padding: 12px;
+      }
+
+      .preview {
+        height: 140px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 6px;
+        overflow: hidden;
+        background:
+          linear-gradient(45deg, #d1d5db 25%, transparent 25%),
+          linear-gradient(-45deg, #d1d5db 25%, transparent 25%),
+          linear-gradient(45deg, transparent 75%, #d1d5db 75%),
+          linear-gradient(-45deg, transparent 75%, #d1d5db 75%);
+        background-size: 18px 18px;
+        background-position: 0 0, 0 9px, 9px -9px, -9px 0;
+      }
+
+      img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+      }
+
+      .name {
+        margin-top: 10px;
+        font-size: 13px;
+        font-weight: 800;
+        word-break: break-word;
+      }
+
+      .meta {
+        margin-top: 4px;
+        font-size: 12px;
+        color: #64748b;
+        line-height: 1.4;
+      }
+
+      a {
+        display: inline-block;
+        margin-top: 8px;
+        color: #1d4ed8;
+        text-decoration: none;
+        font-size: 13px;
+        font-weight: 700;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>New Assets Browser</h1>
+      <div id="summary">Memuat manifest...</div>
+    </header>
+    <main>
+      <div id="grid" class="grid"></div>
+    </main>
+
+    <script>
+      async function main() {
+        const manifest = await fetch('/new_assets/asset_manifest.json').then((res) => res.json());
+        document.getElementById('summary').textContent =
+          `${manifest.total} aset dari ${manifest.source}`;
+
+        const grid = document.getElementById('grid');
+        for (const asset of manifest.assets) {
+          const card = document.createElement('article');
+          card.className = 'card';
+          card.innerHTML = `
+            <div class="preview"><img src="${asset.relativePath}" alt="${asset.name}"></div>
+            <div class="name">${asset.name}</div>
+            <div class="meta">${asset.folder}<br>${asset.width}x${asset.height} · ${asset.pixFmt}</div>
+            <a href="${asset.relativePath}" target="_blank">Buka aset</a>
+          `;
+          grid.appendChild(card);
+        }
+      }
+
+      main().catch((error) => {
+        document.getElementById('summary').textContent = error.message;
+      });
+    </script>
+  </body>
+</html>
